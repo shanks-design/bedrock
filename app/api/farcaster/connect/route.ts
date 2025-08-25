@@ -1,7 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { NeynarAPIClient } from "@neynar/nodejs-sdk"
+import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk"
 
-const neynarClient = new NeynarAPIClient(process.env.NEYNAR_API_KEY || "")
+const config = new Configuration({
+  apiKey: process.env.NEYNAR_API_KEY || "",
+  baseOptions: {
+    headers: {
+      "x-neynar-experimental": true,
+    },
+  },
+})
+
+const neynarClient = new NeynarAPIClient(config)
 
 export async function POST(request: NextRequest) {
   try {

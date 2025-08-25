@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "npm install --legacy-peer-deps --prefer-npm",
   "framework": "nextjs",
   "packageManager": "npm",
   "functions": {
@@ -11,5 +11,10 @@
   "env": {
     "GROQ_API_KEY": "@groq_api_key",
     "NEYNAR_API_KEY": "@neynar_api_key"
+  },
+  "build": {
+    "env": {
+      "NPM_CONFIG_PACKAGE_MANAGER": "npm"
+    }
   }
 }

@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "GROQ_API_KEY": "@groq_api_key",
+    "NEYNAR_API_KEY": "@neynar_api_key"
+  }
+}

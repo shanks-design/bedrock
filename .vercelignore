@@ -1,0 +1,15 @@
+# Ignore pnpm files
+pnpm-lock.yaml
+.pnpm-store/
+
+# Ignore development files
+.env.local
+.env.development
+
+# Ignore build artifacts
+.next/
+out/
+
+# Ignore logs
+*.log
+npm-debug.log*

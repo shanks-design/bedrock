@@ -1,7 +1,8 @@
 {
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
+  "packageManager": "npm",
   "functions": {
     "app/api/**/*.ts": {
       "runtime": "nodejs18.x"

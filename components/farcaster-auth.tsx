@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Badge } from "./ui/badge"
-import { Loader2, LogOut, User } from "lucide-react"
+import { Loader2, LogOut, User, Wallet } from "lucide-react"
 
 interface FarcasterProfile {
   fid: number
@@ -32,52 +32,84 @@ export function FarcasterAuth({ onProfileLoaded }: FarcasterAuthProps) {
   const [profile, setProfile] = useState<FarcasterProfile | null>(null)
   const [casts, setCasts] = useState<Cast[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [isWalletConnecting, setIsWalletConnecting] = useState(false)
 
   const connectFarcaster = async () => {
     setIsConnecting(true)
     setError(null)
 
     try {
-      // For now, we'll simulate the connection process
-      // In a real implementation, you would use Farcaster Auth Kit here
-      const mockProfile: FarcasterProfile = {
-        fid: 12345,
-        username: "demo_user",
-        displayName: "Demo User",
-        pfpUrl: "/abstract-profile.png",
-        bio: "Building the future of social media on Farcaster",
-        followerCount: 42,
-        followingCount: 38
-      }
-
-      const mockCasts: Cast[] = [
-        {
-          text: "Just shipped a new feature! The debugging process was intense but worth it 🚀",
-          timestamp: Date.now() - 3600000,
-          hash: "0x123..."
-        },
-        {
-          text: "Coffee is basically a programming language at this point",
-          timestamp: Date.now() - 7200000,
-          hash: "0x456..."
-        },
-        {
-          text: "Anyone else think meetings could have been an email?",
-          timestamp: Date.now() - 10800000,
-          hash: "0x789..."
+      // Check if user has a Farcaster wallet (like Warpcast, Neynar, etc.)
+      if (typeof window !== 'undefined' && window.ethereum) {
+        // Request account access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        
+        if (accounts.length > 0) {
+          // User has connected their wallet
+          await connectToFarcaster(accounts[0])
+        } else {
+          throw new Error("No wallet accounts found")
         }
-      ]
-
-      setProfile(mockProfile)
-      setCasts(mockCasts)
-      onProfileLoaded(mockProfile, mockCasts)
-
+      } else {
+        // Fallback: try to connect using Farcaster Auth Kit
+        await connectWithAuthKit()
+      }
     } catch (err) {
-      setError("Failed to connect to Farcaster. Please try again.")
       console.error("Farcaster connection error:", err)
+      setError("Failed to connect to Farcaster. Please make sure you have a Farcaster wallet installed.")
     } finally {
       setIsConnecting(false)
     }
+  }
+
+  const connectToFarcaster = async (account: string) => {
+    setIsWalletConnecting(true)
+    
+    try {
+      // For now, we'll simulate the Farcaster connection
+      // In a real implementation, you would use the Farcaster Auth Kit here
+      // to get the user's FID and signer information
+      
+      // Simulate API call to your backend
+      const response = await fetch("/api/farcaster/connect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          walletAddress: account,
+          // In real implementation, you'd also send:
+          // - signerUuid from Farcaster Auth Kit
+          // - user's FID
+          // - signature for verification
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to connect to Farcaster")
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setProfile(data.profile)
+        setCasts(data.casts || [])
+        onProfileLoaded(data.profile, data.casts || [])
+      } else {
+        throw new Error(data.error || "Connection failed")
+      }
+    } catch (err) {
+      setError("Failed to authenticate with Farcaster. Please try again.")
+      console.error("Authentication error:", err)
+    } finally {
+      setIsWalletConnecting(false)
+    }
+  }
+
+  const connectWithAuthKit = async () => {
+    // This would implement the actual Farcaster Auth Kit flow
+    // For now, we'll show a message about installing a wallet
+    setError("Please install a Farcaster wallet (like Warpcast) to connect your account.")
   }
 
   const disconnect = () => {
@@ -155,20 +187,23 @@ export function FarcasterAuth({ onProfileLoaded }: FarcasterAuthProps) {
           Connect your Farcaster wallet to analyze your casts and discover which sitcom character you are!
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <Button 
           onClick={connectFarcaster} 
-          disabled={isConnecting} 
+          disabled={isConnecting || isWalletConnecting} 
           className="w-full"
           size="lg"
         >
-          {isConnecting ? (
+          {isConnecting || isWalletConnecting ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Connecting...
+              {isWalletConnecting ? "Connecting Wallet..." : "Connecting..."}
             </>
           ) : (
-            "Connect Farcaster"
+            <>
+              <Wallet className="h-4 w-4 mr-2" />
+              Connect Farcaster Wallet
+            </>
           )}
         </Button>
         
@@ -177,6 +212,10 @@ export function FarcasterAuth({ onProfileLoaded }: FarcasterAuthProps) {
             {error}
           </p>
         )}
+
+        <div className="text-xs text-muted-foreground text-center">
+          <p>You'll need a Farcaster wallet like Warpcast to connect</p>
+        </div>
       </CardContent>
     </Card>
   )

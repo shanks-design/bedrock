@@ -52,48 +52,38 @@ const CHARACTERS = {
   ],
 }
 
-async function fetchUserCasts(fid: number) {
-  const mockCasts = [
-    "Just shipped a new feature! The debugging process was intense but worth it 🚀",
-    "Coffee is basically a programming language at this point",
-    "Anyone else think meetings could have been an email?",
-    "Working late again, but the code is finally clean",
-    "That feeling when your tests pass on the first try ✨",
-  ]
-
-  return mockCasts
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const { fid, username } = await request.json()
+    const { casts } = await request.json()
 
-    if (!fid) {
-      return NextResponse.json({ error: "FID is required" }, { status: 400 })
+    if (!casts || !Array.isArray(casts) || casts.length === 0) {
+      return NextResponse.json({ error: "Casts data is required" }, { status: 400 })
     }
-
-    const casts = await fetchUserCasts(fid)
 
     const allCharacters = Object.values(CHARACTERS).flat()
     const characterDescriptions = allCharacters
       .map((char) => `${char.name} from ${char.show}: ${char.traits.join(", ")}`)
       .join("\n")
 
+    // Extract cast text content for analysis
+    const castTexts = casts.map(cast => cast.text).join("\n")
+
     const { text } = await generateText({
       model: groq("llama-3.1-70b-instruct"),
-      prompt: `Analyze these social media posts and determine which sitcom character the author is most similar to based on their personality, humor style, and communication patterns.
+      prompt: `Analyze these Farcaster casts and determine which sitcom character the author is most similar to based on their personality, humor style, and communication patterns.
 
-Posts to analyze:
-${casts.join("\n")}
+Casts to analyze:
+${castTexts}
 
 Available characters:
 ${characterDescriptions}
 
-Based on the writing style, humor, topics, and personality traits shown in these posts, which character matches best? Consider:
+Based on the writing style, humor, topics, and personality traits shown in these casts, which character matches best? Consider:
 - Communication style (sarcastic, enthusiastic, technical, etc.)
 - Topics of interest
 - Humor type
 - Personality traits
+- Writing patterns and vocabulary
 
 Respond with just the character name exactly as listed above, followed by a confidence percentage (70-95%), then a brief explanation of why they match.
 
@@ -120,6 +110,7 @@ Format: CHARACTER_NAME|CONFIDENCE%|EXPLANATION`,
       character: matchedCharacter,
       confidence: Math.max(70, Math.min(95, confidence)), // Ensure confidence is between 70-95%
       reasoning: explanation,
+      analyzedCasts: casts.length,
     })
   } catch (error) {
     console.error("Analysis error:", error)
@@ -131,6 +122,7 @@ Format: CHARACTER_NAME|CONFIDENCE%|EXPLANATION`,
       character: randomCharacter,
       confidence: Math.floor(Math.random() * 20) + 75,
       reasoning: `Based on your posting style, you show traits of being ${randomCharacter.traits.slice(0, 2).join(" and ")}, just like ${randomCharacter.name}!`,
+      analyzedCasts: casts?.length || 0,
     })
   }
 }

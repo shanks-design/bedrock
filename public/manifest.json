@@ -1,0 +1,24 @@
+{
+  "name": "Sitcom Character Matcher",
+  "description": "Discover which sitcom character you are based on your Farcaster casts!",
+  "icon": "/placeholder-logo.png",
+  "splash": "/placeholder-logo.png",
+  "theme": "light",
+  "primaryColor": "#fbbf24",
+  "backgroundColor": "#1e40af",
+  "url": "https://your-domain.com",
+  "version": "1.0.0",
+  "author": {
+    "name": "Your Name",
+    "url": "https://github.com/shanks-design"
+  },
+  "permissions": [
+    "user_profile",
+    "user_casts"
+  ],
+  "features": [
+    "authentication",
+    "character_analysis",
+    "social_sharing"
+  ]
+}

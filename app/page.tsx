@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FarcasterAuth } from "@/components/farcaster-auth"
 import { CharacterAnalysis } from "@/components/character-analysis"
+import { sdk } from "@farcaster/miniapp-sdk"
 
 interface FarcasterProfile {
   fid: number
@@ -34,6 +35,50 @@ interface AnalysisResult {
 export default function Home() {
   const [profile, setProfile] = useState<FarcasterProfile | null>(null)
   const [casts, setCasts] = useState<Cast[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Initialize the Mini App SDK
+    const initApp = async () => {
+      try {
+        // Check if we're running in a Farcaster client
+        if (sdk.isInFarcaster) {
+          // Try to get an existing session token
+          const token = sdk.quickAuth.token
+          if (token) {
+            // We have a valid session, fetch user data
+            await fetchUserData()
+          }
+        }
+        
+        // Hide the splash screen and show the app
+        await sdk.actions.ready()
+        setIsLoading(false)
+      } catch (err) {
+        console.error("Failed to initialize app:", err)
+        setError("Failed to initialize the app")
+        setIsLoading(false)
+      }
+    }
+
+    initApp()
+  }, [])
+
+  const fetchUserData = async () => {
+    try {
+      // Use Quick Auth to make authenticated requests
+      const response = await sdk.quickAuth.fetch("/api/farcaster/me")
+      
+      if (response.ok) {
+        const data = await response.json()
+        setProfile(data.profile)
+        setCasts(data.casts || [])
+      }
+    } catch (err) {
+      console.error("Failed to fetch user data:", err)
+    }
+  }
 
   const handleProfileLoaded = (profile: FarcasterProfile, casts: Cast[]) => {
     setProfile(profile)
@@ -54,6 +99,33 @@ export default function Home() {
     }
 
     return response.json()
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <p className="text-xl">Loading Sitcom Character Matcher...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="text-center text-white">
+          <p className="text-xl text-red-400 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg hover:bg-yellow-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

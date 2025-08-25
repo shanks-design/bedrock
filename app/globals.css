@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color tokens to match Fork CMS blue gradient theme */
+  --background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  --foreground: #ffffff;
+  --card: rgba(255, 255, 255, 0.1);
+  --card-foreground: #ffffff;
+  --popover: rgba(255, 255, 255, 0.95);
+  --popover-foreground: #1e40af;
+  --primary: #fbbf24;
+  --primary-foreground: #1e40af;
+  --secondary: #374151;
+  --secondary-foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.1);
+  --muted-foreground: rgba(255, 255, 255, 0.8);
+  --accent: #fbbf24;
+  --accent-foreground: #1e40af;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.2);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: rgba(251, 191, 36, 0.5);
+  --chart-1: #fbbf24;
+  --chart-2: #3b82f6;
+  --chart-3: #1e40af;
+  --chart-4: #fbbf24;
+  --chart-5: #3b82f6;
+  --radius: 0.5rem;
+  --sidebar: rgba(255, 255, 255, 0.1);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #fbbf24;
+  --sidebar-primary-foreground: #1e40af;
+  --sidebar-accent: #374151;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.2);
+  --sidebar-ring: rgba(251, 191, 36, 0.5);
+  /* Added custom font variables for Space Grotesk and DM Sans */
+  --font-nunito: "Nunito", sans-serif;
+  --font-comfortaa: "Comfortaa", cursive;
+}
+
+.dark {
+  /* Updated dark mode to maintain blue gradient theme */
+  --background: linear-gradient(135deg, #1e40af 0%, #0f172a 100%);
+  --foreground: #ffffff;
+  --card: rgba(255, 255, 255, 0.1);
+  --card-foreground: #ffffff;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #fbbf24;
+  --primary-foreground: #0f172a;
+  --secondary: #374151;
+  --secondary-foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.1);
+  --muted-foreground: rgba(255, 255, 255, 0.8);
+  --accent: #fbbf24;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.2);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: rgba(251, 191, 36, 0.5);
+  --chart-1: #fbbf24;
+  --chart-2: #3b82f6;
+  --chart-3: #1e40af;
+  --chart-4: #fbbf24;
+  --chart-5: #3b82f6;
+  --sidebar: rgba(255, 255, 255, 0.1);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #fbbf24;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #374151;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.2);
+  --sidebar-ring: rgba(251, 191, 36, 0.5);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Updated font variables to use new rounded fonts */
+  --font-sans: var(--font-nunito);
+  --font-heading: var(--font-comfortaa);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    /* Added gradient background to body */
+    background: var(--background);
+    @apply text-foreground;
+  }
+
+  /* Added custom gradient background class */
+  .gradient-bg {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  }
+}

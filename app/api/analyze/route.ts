@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const castTexts = casts.map(cast => cast.text).join("\n")
 
     const { text } = await generateText({
-      model: groq("llama-3.1-70b-instruct"),
+      model: groq("llama3-70b-8192"),
       prompt: `Analyze these Farcaster casts and determine which sitcom character the author is most similar to based on their personality, humor style, and communication patterns.
 
 Casts to analyze:
@@ -122,7 +122,7 @@ Format: CHARACTER_NAME|CONFIDENCE%|EXPLANATION`,
       character: randomCharacter,
       confidence: Math.floor(Math.random() * 20) + 75,
       reasoning: `Based on your posting style, you show traits of being ${randomCharacter.traits.slice(0, 2).join(" and ")}, just like ${randomCharacter.name}!`,
-      analyzedCasts: casts?.length || 0,
+      analyzedCasts: 0, // Fixed: removed reference to undefined casts variable
     })
   }
 }

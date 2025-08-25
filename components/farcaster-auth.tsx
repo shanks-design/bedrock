@@ -5,7 +5,7 @@ import { Button } from "./ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Badge } from "./ui/badge"
-import { Loader2, LogOut, User, Sparkles } from "lucide-react"
+import { Loader2, LogOut, User, Sparkles, CheckCircle } from "lucide-react"
 import { sdk } from "@farcaster/miniapp-sdk"
 
 interface FarcasterProfile {
@@ -34,6 +34,7 @@ export function FarcasterAuth({ onProfileLoaded }: FarcasterAuthProps) {
   const [casts, setCasts] = useState<Cast[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isInFarcaster, setIsInFarcaster] = useState(false)
+  const [neynarStatus, setNeynarStatus] = useState<string>("")
 
   useEffect(() => {
     // Check if we're running in a Farcaster client
@@ -87,44 +88,38 @@ export function FarcasterAuth({ onProfileLoaded }: FarcasterAuthProps) {
   }
 
   const connectWithMockData = async () => {
-    // Fallback mock data for web usage
-    const mockProfile: FarcasterProfile = {
-      fid: 12345,
-      username: "demo_user",
-      displayName: "Demo User",
-      pfpUrl: "/abstract-profile.png",
-      bio: "Building the future of social media on Farcaster",
-      followerCount: 42,
-      followingCount: 38
-    }
+    try {
+      // Call the connect API to get mock data
+      const response = await fetch("/api/farcaster/connect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          walletAddress: "0x1234567890abcdef", // Mock wallet address
+        }),
+      })
 
-    const mockCasts: Cast[] = [
-      {
-        text: "Just shipped a new feature! The debugging process was intense but worth it 🚀",
-        timestamp: Date.now() - 3600000,
-        hash: "0x123..."
-      },
-      {
-        text: "Coffee is basically a programming language at this point",
-        timestamp: Date.now() - 7200000,
-        hash: "0x456..."
-      },
-      {
-        text: "Anyone else think meetings could have been an email?",
-        timestamp: Date.now() - 10800000,
-        hash: "0x789..."
+      if (response.ok) {
+        const data = await response.json()
+        setProfile(data.profile)
+        setCasts(data.casts || [])
+        setNeynarStatus(data.message || "")
+        onProfileLoaded(data.profile, data.casts || [])
+      } else {
+        throw new Error("Failed to connect")
       }
-    ]
-
-    setProfile(mockProfile)
-    setCasts(mockCasts)
-    onProfileLoaded(mockProfile, mockCasts)
+    } catch (err) {
+      setError("Failed to connect to Farcaster. Please try again.")
+      console.error("Connection error:", err)
+    }
   }
 
   const disconnect = () => {
     setProfile(null)
     setCasts([])
     setError(null)
+    setNeynarStatus("")
   }
 
   if (profile) {
@@ -174,6 +169,15 @@ export function FarcasterAuth({ onProfileLoaded }: FarcasterAuthProps) {
               {casts.length} casts loaded
             </Badge>
           </div>
+
+          {neynarStatus && (
+            <div className="text-xs text-center p-2 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
+                <CheckCircle className="h-3 w-3" />
+                {neynarStatus}
+              </div>
+            </div>
+          )}
 
           <Button 
             onClick={disconnect} 

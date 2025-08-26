@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "next build",
+    "build:force-npm": "./scripts/force-npm.sh",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start"

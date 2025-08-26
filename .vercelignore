@@ -1,15 +1,48 @@
-# Ignore pnpm files
+# CRITICAL: Force npm usage by excluding all other package managers
 pnpm-lock.yaml
+pnpm-lock.yaml.*
 .pnpm-store/
+.pnpm-debug.log*
+yarn.lock
+yarn-error.log
+.pnp.*
+.npmrc
+.yarnrc*
 
-# Ignore development files
+# Exclude development files
 .env.local
 .env.development
+.env.test
 
-# Ignore build artifacts
+# Exclude build artifacts
 .next/
 out/
+dist/
+build/
 
-# Ignore logs
+# Exclude logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Exclude cache
+.cache/
+.parcel-cache/
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude git
+.git/
+.gitignore
+
+# Exclude node modules (will be installed fresh)
+node_modules/

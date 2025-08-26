@@ -5,14 +5,16 @@ echo "🔧 Forcing npm usage..."
 export NPM_CONFIG_PACKAGE_MANAGER=npm
 export NPM_CONFIG_LEGACY_PEER_DEPS=true
 export NPM_CONFIG_FORCE=true
+export NPM_CONFIG_PREFER_NPM=true
 
-# Remove any existing lock files
-echo "🧹 Cleaning up lock files..."
-rm -f pnpm-lock.yaml yarn.lock
+# Remove any existing lock files and package manager files
+echo "🧹 Cleaning up ALL package manager files..."
+rm -f pnpm-lock.yaml yarn.lock package-lock.json
+rm -rf .pnpm-store .yarn .yarnrc.yml .npmrc
 
-# Install with npm
+# Clean install with npm
 echo "📦 Installing dependencies with npm..."
-npm install --legacy-peer-deps --force
+npm install --legacy-peer-deps --force --prefer-npm
 
 # Build
 echo "🏗️ Building with npm..."

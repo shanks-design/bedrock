@@ -1,4 +1,4 @@
-# CRITICAL: Force npm usage by excluding all other package managers
+# CRITICAL: Force npm usage by excluding ALL other package managers
 pnpm-lock.yaml
 pnpm-lock.yaml.*
 .pnpm-store/
@@ -8,6 +8,8 @@ yarn-error.log
 .pnp.*
 .npmrc
 .yarnrc*
+.yarn/
+package-lock.json
 
 # Exclude development files
 .env.local
@@ -46,3 +48,6 @@ Thumbs.db
 
 # Exclude node modules (will be installed fresh)
 node_modules/
+
+# Exclude any other package manager files
+*.lock

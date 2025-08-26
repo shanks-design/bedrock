@@ -1,4 +1,4 @@
-# CRITICAL: Force npm usage by excluding package manager files only
+# ONLY exclude package manager files - preserve everything else
 pnpm-lock.yaml
 pnpm-lock.yaml.*
 .pnpm-store/
@@ -11,40 +11,4 @@ yarn-error.log
 .yarn/
 package-lock.json
 
-# Exclude development files
-.env.local
-.env.development
-.env.test
-
-# Exclude build artifacts (but not source files)
-.next/
-out/
-dist/
-build/
-
-# Exclude logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Exclude cache
-.cache/
-.parcel-cache/
-
-# Exclude IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Exclude OS files
-.DS_Store
-Thumbs.db
-
-# Exclude git (but keep source code)
-.git/
-.gitignore
-
-# DO NOT exclude node_modules - let Vercel handle this
-# DO NOT exclude source files - we need them for the build
+# That's it - don't exclude anything else!

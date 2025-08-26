@@ -1,4 +1,4 @@
-# CRITICAL: Force npm usage by excluding ALL other package managers
+# CRITICAL: Force npm usage by excluding package manager files only
 pnpm-lock.yaml
 pnpm-lock.yaml.*
 .pnpm-store/
@@ -16,7 +16,7 @@ package-lock.json
 .env.development
 .env.test
 
-# Exclude build artifacts
+# Exclude build artifacts (but not source files)
 .next/
 out/
 dist/
@@ -42,12 +42,9 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Exclude git
+# Exclude git (but keep source code)
 .git/
 .gitignore
 
-# Exclude node modules (will be installed fresh)
-node_modules/
-
-# Exclude any other package manager files
-*.lock
+# DO NOT exclude node_modules - let Vercel handle this
+# DO NOT exclude source files - we need them for the build

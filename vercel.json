@@ -7,10 +7,6 @@
       "runtime": "nodejs18.x"
     }
   },
-  "env": {
-    "GROQ_API_KEY": "@groq_api_key",
-    "NEYNAR_API_KEY": "@neynar_api_key"
-  },
   "build": {
     "env": {
       "NPM_CONFIG_PACKAGE_MANAGER": "npm",

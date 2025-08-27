@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
 
 interface UserData {
   fid: number
@@ -27,16 +26,22 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
     try {
       if (isInFarcaster) {
         // Use Quick Auth for seamless authentication
-        const { token } = await sdk.quickAuth.getToken()
-        
-        // Fetch user data using the authenticated token
-        const response = await sdk.quickAuth.fetch('/api/farcaster/me')
-        
-        if (response.ok) {
-          const userData = await response.json()
-          onUserConnected(userData)
-        } else {
-          throw new Error('Failed to fetch user data')
+        try {
+          const { sdk } = await import('@farcaster/miniapp-sdk')
+          const { token } = await sdk.quickAuth.getToken()
+          
+          // Fetch user data using the authenticated token
+          const response = await sdk.quickAuth.fetch('/api/farcaster/me')
+          
+          if (response.ok) {
+            const userData = await response.json()
+            onUserConnected(userData)
+          } else {
+            throw new Error('Failed to fetch user data')
+          }
+        } catch (sdkError) {
+          console.error('SDK error:', sdkError)
+          throw new Error('Failed to connect with Farcaster SDK')
         }
       } else {
         // Fallback for non-Farcaster environments (development/testing)

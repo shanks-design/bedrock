@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
 import FarcasterAuth from '@/components/farcaster-auth'
 import CharacterAnalysis from '@/components/character-analysis'
 
@@ -17,35 +16,64 @@ export default function Home() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sdkAvailable, setSdkAvailable] = useState(false)
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Check if we're inside a Farcaster client
-        const inFarcaster = sdk.isInFarcaster()
-        setIsInFarcaster(inFarcaster)
+        // Check if we're in a browser environment
+        if (typeof window === 'undefined') {
+          setIsInFarcaster(false)
+          setLoading(false)
+          return
+        }
 
-        if (inFarcaster) {
-          // Initialize the Mini App SDK
-          await sdk.actions.ready()
-          
-          // Try to get authenticated user data
-          try {
-            const response = await sdk.quickAuth.fetch('/api/farcaster/me')
-            if (response.ok) {
-              const data = await response.json()
-              setUserData(data)
-            } else {
-              console.log('User not authenticated, will show sign-in')
+        // Check if the Mini App SDK is available
+        let sdk: any = null
+        try {
+          const { sdk: sdkModule } = await import('@farcaster/miniapp-sdk')
+          sdk = sdkModule
+          setSdkAvailable(true)
+        } catch (sdkError) {
+          console.log('Mini App SDK not available:', sdkError)
+          setSdkAvailable(false)
+          setIsInFarcaster(false)
+          setLoading(false)
+          return
+        }
+
+        // Check if we're inside a Farcaster client
+        try {
+          const inFarcaster = sdk.isInFarcaster()
+          setIsInFarcaster(inFarcaster)
+
+          if (inFarcaster) {
+            // Initialize the Mini App SDK
+            await sdk.actions.ready()
+            
+            // Try to get authenticated user data
+            try {
+              const response = await sdk.quickAuth.fetch('/api/farcaster/me')
+              if (response.ok) {
+                const data = await response.json()
+                setUserData(data)
+              } else {
+                console.log('User not authenticated, will show sign-in')
+              }
+            } catch (authError) {
+              console.log('Authentication error:', authError)
+              // This is expected for new users
             }
-          } catch (authError) {
-            console.log('Authentication error:', authError)
-            // This is expected for new users
           }
+        } catch (sdkInitError) {
+          console.log('SDK initialization error:', sdkInitError)
+          // If SDK fails to initialize, we're not in a Farcaster client
+          setIsInFarcaster(false)
         }
       } catch (err) {
-        console.error('SDK initialization error:', err)
-        setError('Failed to initialize Farcaster Mini App')
+        console.error('App initialization error:', err)
+        // Don't set error for initialization issues, just continue in web mode
+        setIsInFarcaster(false)
       } finally {
         setLoading(false)
       }
@@ -63,26 +91,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white text-xl">Initializing Farcaster Mini App...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
-            <p className="text-lg font-semibold">Error</p>
-            <p>{error}</p>
-          </div>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
-          >
-            Retry
-          </button>
+          <p className="text-white text-xl">Initializing...</p>
         </div>
       </div>
     )
@@ -103,6 +112,16 @@ export default function Home() {
               ✓ Running as Farcaster Mini App
             </div>
           )}
+          {!isInFarcaster && sdkAvailable && (
+            <div className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-full text-sm">
+              🌐 Running in Web Mode
+            </div>
+          )}
+          {!sdkAvailable && (
+            <div className="mt-4 inline-block bg-yellow-500 text-white px-4 py-2 rounded-full text-sm">
+              ⚠️ Mini App SDK Unavailable
+            </div>
+          )}
         </div>
 
         {!userData ? (
@@ -115,6 +134,23 @@ export default function Home() {
             userData={userData}
             onReanalyze={() => setUserData(null)}
           />
+        )}
+
+        {/* Development Info */}
+        {!isInFarcaster && (
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-3">Development Mode</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                This app is designed to run as a Farcaster Mini App. In production, users will authenticate through their Farcaster client.
+              </p>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p>• <strong>Current Environment:</strong> {sdkAvailable ? 'Web Browser' : 'Unknown'}</p>
+                <p>• <strong>Farcaster Client:</strong> {isInFarcaster ? 'Yes' : 'No'}</p>
+                <p>• <strong>SDK Available:</strong> {sdkAvailable ? 'Yes' : 'No'}</p>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

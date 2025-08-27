@@ -6,6 +6,15 @@ const client = createClient()
 
 export async function GET(request: NextRequest) {
   try {
+    // Debug: Log environment variables (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Environment check:')
+      console.log('- NODE_ENV:', process.env.NODE_ENV)
+      console.log('- NEYNAR_API_KEY exists:', !!process.env.NEYNAR_API_KEY)
+      console.log('- NEYNAR_API_KEY length:', process.env.NEYNAR_API_KEY?.length || 0)
+      console.log('- All env vars:', Object.keys(process.env).filter(key => key.includes('NEY')))
+    }
+
     // Get the Authorization header
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -36,6 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Check if Neynar API key is configured
     if (!process.env.NEYNAR_API_KEY) {
+      console.error('Neynar API key not found in environment variables')
       return NextResponse.json(
         { error: 'Neynar API key not configured. Please contact the administrator.' },
         { status: 500 }

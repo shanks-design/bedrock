@@ -29,33 +29,45 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected, debugInf
       if (isInFarcaster) {
         // Use Quick Auth for seamless authentication
         try {
-          console.log('Attempting to import and use Mini App SDK...')
+          console.log('=== Starting Farcaster Authentication ===')
+          console.log('1. Attempting to import Mini App SDK...')
           const { sdk } = await import('@farcaster/miniapp-sdk')
-          console.log('SDK imported successfully, getting token...')
+          console.log('2. SDK imported successfully')
           
+          console.log('3. Getting Quick Auth token...')
           const { token } = await sdk.quickAuth.getToken()
-          console.log('Token received:', token ? 'Yes' : 'No')
+          console.log('4. Token received:', token ? 'Yes' : 'No')
+          console.log('4a. Token length:', token?.length || 0)
+          console.log('4b. Token preview:', token ? `${token.substring(0, 20)}...` : 'None')
           
           if (!token) {
             throw new Error('No authentication token received from Farcaster')
           }
           
           // Fetch user data using the authenticated token
-          console.log('Fetching user data with token...')
+          console.log('5. Fetching user data with token...')
+          console.log('5a. Target URL: /api/farcaster/me')
+          console.log('5b. Token header:', `Bearer ${token.substring(0, 20)}...`)
+          
           const response = await sdk.quickAuth.fetch('/api/farcaster/me')
-          console.log('Response received:', response.status, response.statusText)
+          console.log('6. Response received:', response.status, response.statusText)
+          console.log('6a. Response headers:', Object.fromEntries(response.headers.entries()))
           
           if (response.ok) {
             const userData = await response.json()
-            console.log('User data parsed successfully:', userData)
+            console.log('7. User data parsed successfully:', userData)
             onUserConnected(userData)
           } else {
             const errorData = await response.json().catch(() => ({}))
-            console.error('Quick Auth failed:', response.status, errorData)
+            console.error('8. Quick Auth failed:', response.status, errorData)
             throw new Error(errorData.error || `Failed to fetch user data: ${response.status}`)
           }
         } catch (sdkError) {
-          console.error('SDK error:', sdkError)
+          console.error('=== SDK Error Details ===')
+          console.error('Error type:', typeof sdkError)
+          console.error('Error message:', sdkError.message)
+          console.error('Error stack:', sdkError.stack)
+          console.error('Full error object:', sdkError)
           throw new Error(`SDK Error: ${sdkError.message}`)
         }
       } else {
@@ -63,7 +75,8 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected, debugInf
         throw new Error('This app requires a Farcaster client to authenticate. Please open it in Warpcast, Base App, or another Farcaster client.')
       }
     } catch (err) {
-      console.error('Authentication error:', err)
+      console.error('=== Authentication Error Summary ===')
+      console.error('Error:', err)
       setError(err instanceof Error ? err.message : 'Failed to connect to Farcaster. Please try again.')
     } finally {
       setIsConnecting(false)

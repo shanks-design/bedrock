@@ -17,7 +17,6 @@ interface FarcasterAuthProps {
 export default function FarcasterAuth({ isInFarcaster, onUserConnected }: FarcasterAuthProps) {
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [neynarStatus, setNeynarStatus] = useState<string>('')
 
   const connectWithFarcaster = async () => {
     setIsConnecting(true)
@@ -37,48 +36,22 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
             const userData = await response.json()
             onUserConnected(userData)
           } else {
-            throw new Error('Failed to fetch user data')
+            const errorData = await response.json()
+            throw new Error(errorData.error || 'Failed to fetch user data')
           }
         } catch (sdkError) {
           console.error('SDK error:', sdkError)
           throw new Error('Failed to connect with Farcaster SDK')
         }
       } else {
-        // Fallback for non-Farcaster environments (development/testing)
-        await connectWithMockData()
+        // For non-Farcaster environments, show guidance
+        throw new Error('This app requires a Farcaster client to authenticate. Please open it in Warpcast, Base App, or another Farcaster client.')
       }
     } catch (err) {
       console.error('Authentication error:', err)
-      setError('Failed to connect to Farcaster. Please try again.')
+      setError(err instanceof Error ? err.message : 'Failed to connect to Farcaster. Please try again.')
     } finally {
       setIsConnecting(false)
-    }
-  }
-
-  const connectWithMockData = async () => {
-    try {
-      const response = await fetch('/api/farcaster/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          signerUuid: 'mock-signer-uuid',
-          fid: 12345,
-          walletAddress: '0x1234567890123456789012345678901234567890'
-        })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setNeynarStatus(data.neynarStatus || 'Mock data used')
-        onUserConnected(data)
-      } else {
-        throw new Error('Failed to connect with mock data')
-      }
-    } catch (err) {
-      console.error('Mock connection error:', err)
-      setError('Failed to connect. Please try again.')
     }
   }
 
@@ -92,12 +65,12 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
-            {isInFarcaster ? 'Connect Your Farcaster Account' : 'Test with Mock Data'}
+            {isInFarcaster ? 'Connect Your Farcaster Account' : 'Farcaster Client Required'}
           </h2>
           <p className="text-gray-300">
             {isInFarcaster 
               ? 'Sign in securely with your Farcaster wallet to analyze your social data'
-              : 'Running in development mode - using mock data for testing'
+              : 'This app requires a Farcaster client to authenticate and access your data'
             }
           </p>
         </div>
@@ -108,17 +81,11 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
           </div>
         )}
 
-        {neynarStatus && (
-          <div className="bg-blue-500/20 border border-blue-500/50 text-blue-200 px-4 py-3 rounded-lg mb-6">
-            <strong>Status:</strong> {neynarStatus}
-          </div>
-        )}
-
         <button
           onClick={connectWithFarcaster}
-          disabled={isConnecting}
+          disabled={isConnecting || !isInFarcaster}
           className={`w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
-            isConnecting
+            isConnecting || !isInFarcaster
               ? 'bg-gray-500 cursor-not-allowed'
               : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 transform hover:scale-105'
           } text-white`}
@@ -129,7 +96,7 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
               Connecting...
             </div>
           ) : (
-            isInFarcaster ? 'Sign In with Farcaster' : 'Connect with Mock Data'
+            isInFarcaster ? 'Sign In with Farcaster' : 'Farcaster Client Required'
           )}
         </button>
 
@@ -140,11 +107,17 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
         )}
 
         {!isInFarcaster && (
-          <div className="mt-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
-            <p className="text-yellow-200 text-sm">
-              <strong>Development Mode:</strong> This app is designed to run as a Farcaster Mini App. 
-              In production, users will authenticate through their Farcaster client.
-            </p>
+          <div className="mt-6 p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+            <h3 className="text-lg font-semibold text-blue-200 mb-2">How to Use This App</h3>
+            <div className="text-blue-100 text-sm space-y-2">
+              <p>1. <strong>Open in Farcaster Client:</strong> Use Warpcast, Base App, or another Farcaster client</p>
+              <p>2. <strong>Find the App:</strong> Search for "Sitcom Matcher" or use the cast link</p>
+              <p>3. <strong>Authenticate:</strong> Sign in with your Farcaster wallet</p>
+              <p>4. <strong>Analyze:</strong> Get your character analysis based on real social data</p>
+            </div>
+            <div className="mt-4 text-xs text-blue-200">
+              <p><strong>Note:</strong> This app requires real Farcaster authentication to access your profile, casts, and reactions for accurate character analysis.</p>
+            </div>
           </div>
         )}
       </div>

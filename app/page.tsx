@@ -15,7 +15,6 @@ export default function Home() {
   const [isInFarcaster, setIsInFarcaster] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [sdkAvailable, setSdkAvailable] = useState(false)
 
   useEffect(() => {
@@ -105,7 +104,7 @@ export default function Home() {
             Farcaster Sitcom Matcher
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Connect your Farcaster account and discover which sitcom character you're most like based on your social data!
+            Connect your Farcaster account and discover which sitcom character you're most like based on your real social data!
           </p>
           {isInFarcaster && (
             <div className="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-full text-sm">
@@ -114,7 +113,7 @@ export default function Home() {
           )}
           {!isInFarcaster && sdkAvailable && (
             <div className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-full text-sm">
-              🌐 Running in Web Mode
+              🌐 Open in Farcaster Client for Full Experience
             </div>
           )}
           {!sdkAvailable && (
@@ -136,18 +135,40 @@ export default function Home() {
           />
         )}
 
-        {/* Development Info */}
+        {/* App Information */}
         {!isInFarcaster && (
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-3">Development Mode</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                This app is designed to run as a Farcaster Mini App. In production, users will authenticate through their Farcaster client.
-              </p>
-              <div className="text-xs text-gray-400 space-y-1">
-                <p>• <strong>Current Environment:</strong> {sdkAvailable ? 'Web Browser' : 'Unknown'}</p>
-                <p>• <strong>Farcaster Client:</strong> {isInFarcaster ? 'Yes' : 'No'}</p>
-                <p>• <strong>SDK Available:</strong> {sdkAvailable ? 'Yes' : 'No'}</p>
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8">
+              <h3 className="text-2xl font-semibold text-white mb-4 text-center">
+                🎭 Real Farcaster Data Analysis
+              </h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="text-lg font-semibold text-blue-300 mb-3">What This App Does</h4>
+                  <ul className="text-gray-300 text-sm space-y-2">
+                    <li>• <strong>Authenticates</strong> with your Farcaster wallet</li>
+                    <li>• <strong>Fetches</strong> your real profile, casts, and reactions</li>
+                    <li>• <strong>Analyzes</strong> your social data using AI</li>
+                    <li>• <strong>Matches</strong> you with sitcom characters</li>
+                    <li>• <strong>Provides</strong> detailed reasoning for matches</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-green-300 mb-3">How to Use</h4>
+                  <ul className="text-gray-300 text-sm space-y-2">
+                    <li>1. <strong>Open in Farcaster Client</strong> (Warpcast, Base App)</li>
+                    <li>2. <strong>Find the App</strong> via cast or search</li>
+                    <li>3. <strong>Sign In</strong> with your Farcaster wallet</li>
+                    <li>4. <strong>Get Analysis</strong> based on real data</li>
+                    <li>5. <strong>Share Results</strong> back to Farcaster</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-6 p-4 bg-purple-500/20 border border-purple-500/50 rounded-lg">
+                <p className="text-purple-200 text-sm text-center">
+                  <strong>Privacy First:</strong> Your data is only used for character analysis and is never stored permanently. 
+                  The app connects directly to Farcaster via secure authentication.
+                </p>
               </div>
             </div>
           </div>

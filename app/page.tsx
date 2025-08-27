@@ -1,112 +1,69 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { FarcasterAuth } from "@/components/farcaster-auth"
-import { CharacterAnalysis } from "@/components/character-analysis"
-import { sdk } from "@farcaster/miniapp-sdk"
+import { useEffect, useState } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
+import FarcasterAuth from '@/components/farcaster-auth'
+import CharacterAnalysis from '@/components/character-analysis'
 
-interface FarcasterProfile {
+interface UserData {
   fid: number
-  username: string
-  displayName: string
-  pfpUrl: string
-  bio: string
-  followerCount: number
-  followingCount: number
-}
-
-interface Cast {
-  text: string
-  timestamp: number
-  hash: string
-}
-
-interface AnalysisResult {
-  character: {
-    name: string
-    traits: string[]
-    show: string
-  }
-  confidence: number
-  reasoning: string
-  analyzedCasts: number
+  profile?: any
+  casts?: any[]
+  reactions?: any[]
 }
 
 export default function Home() {
-  const [profile, setProfile] = useState<FarcasterProfile | null>(null)
-  const [casts, setCasts] = useState<Cast[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isInFarcaster, setIsInFarcaster] = useState(false)
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Initialize the Mini App SDK
-    const initApp = async () => {
+    const initializeApp = async () => {
       try {
-        // Check if we're running in a Farcaster client
-        if (sdk.isInFarcaster) {
-          // Try to get an existing session token
-          const token = sdk.quickAuth.token
-          if (token) {
-            // We have a valid session, fetch user data
-            await fetchUserData()
+        // Check if we're inside a Farcaster client
+        const inFarcaster = sdk.isInFarcaster()
+        setIsInFarcaster(inFarcaster)
+
+        if (inFarcaster) {
+          // Initialize the Mini App SDK
+          await sdk.actions.ready()
+          
+          // Try to get authenticated user data
+          try {
+            const response = await sdk.quickAuth.fetch('/api/farcaster/me')
+            if (response.ok) {
+              const data = await response.json()
+              setUserData(data)
+            } else {
+              console.log('User not authenticated, will show sign-in')
+            }
+          } catch (authError) {
+            console.log('Authentication error:', authError)
+            // This is expected for new users
           }
         }
-        
-        // Hide the splash screen and show the app
-        await sdk.actions.ready()
-        setIsLoading(false)
       } catch (err) {
-        console.error("Failed to initialize app:", err)
-        setError("Failed to initialize the app")
-        setIsLoading(false)
+        console.error('SDK initialization error:', err)
+        setError('Failed to initialize Farcaster Mini App')
+      } finally {
+        setLoading(false)
       }
     }
 
-    initApp()
+    initializeApp()
   }, [])
 
-  const fetchUserData = async () => {
-    try {
-      // Use Quick Auth to make authenticated requests
-      const response = await sdk.quickAuth.fetch("/api/farcaster/me")
-      
-      if (response.ok) {
-        const data = await response.json()
-        setProfile(data.profile)
-        setCasts(data.casts || [])
-      }
-    } catch (err) {
-      console.error("Failed to fetch user data:", err)
-    }
+  const handleUserConnected = (data: UserData) => {
+    setUserData(data)
   }
 
-  const handleProfileLoaded = (profile: FarcasterProfile, casts: Cast[]) => {
-    setProfile(profile)
-    setCasts(casts)
-  }
-
-  const handleAnalyze = async (casts: Cast[]): Promise<AnalysisResult> => {
-    const response = await fetch("/api/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ casts }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to analyze casts")
-    }
-
-    return response.json()
-  }
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-          <p className="text-xl">Loading Sitcom Character Matcher...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-xl">Initializing Farcaster Mini App...</p>
         </div>
       </div>
     )
@@ -114,12 +71,15 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="text-center text-white">
-          <p className="text-xl text-red-400 mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
+            <p className="text-lg font-semibold">Error</p>
+            <p>{error}</p>
+          </div>
           <button 
             onClick={() => window.location.reload()} 
-            className="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg hover:bg-yellow-300"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
           >
             Retry
           </button>
@@ -129,85 +89,33 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen gradient-bg">
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="space-y-8 mb-12">
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-white leading-tight">
-            Discover which <span className="text-yellow-400">sitcom character</span> you are based on your Farcaster casts.
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-white mb-4">
+            Farcaster Sitcom Matcher
           </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Connect your Farcaster account and let AI analyze your personality through your social posts to find your perfect sitcom match!
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Connect your Farcaster account and discover which sitcom character you're most like based on your social data!
           </p>
-        </div>
-
-        <div className="space-y-8">
-          {/* Farcaster Authentication */}
-          <FarcasterAuth onProfileLoaded={handleProfileLoaded} />
-
-          {/* Character Analysis - Only show when profile is loaded */}
-          {profile && casts.length > 0 && (
-            <CharacterAnalysis casts={casts} onAnalyze={handleAnalyze} />
+          {isInFarcaster && (
+            <div className="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-full text-sm">
+              ✓ Running as Farcaster Mini App
+            </div>
           )}
         </div>
 
-        {/* Featured Shows */}
-        <div className="text-center mt-16">
-          <h2 className="text-2xl font-heading font-semibold text-white mb-6">
-            Featured Shows
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
-            <div className="text-center">
-              <div className="bg-white/10 backdrop-blur-sm border-white/20 rounded-lg p-2 hover:bg-white/20 transition-all duration-200">
-                <img
-                  src="/the-office-tv-show-poster.png"
-                  alt="The Office"
-                  className="w-full h-32 md:h-40 object-cover rounded-md mb-2"
-                />
-                <p className="text-white text-sm font-medium">The Office</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="bg-white/10 backdrop-blur-sm border-white/20 rounded-lg p-2 hover:bg-white/20 transition-all duration-200">
-                <img
-                  src="/friends-tv-show-poster.png"
-                  alt="Friends"
-                  className="w-full h-32 md:h-40 object-cover rounded-md mb-2"
-                />
-                <p className="text-white text-sm font-medium">Friends</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="bg-white/10 backdrop-blur-sm border-white/20 rounded-lg p-2 hover:bg-white/20 transition-all duration-200">
-                <img
-                  src="/big-bang-theory-tv-show-poster.png"
-                  alt="Big Bang Theory"
-                  className="w-full h-32 md:h-40 object-cover rounded-md mb-2"
-                />
-                <p className="text-white text-sm font-medium">Big Bang Theory</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="bg-white/10 backdrop-blur-sm border-white/20 rounded-lg p-2 hover:bg-white/20 transition-all duration-200">
-                <img
-                  src="/silicon-valley-tv-show-poster.png"
-                  alt="Silicon Valley"
-                  className="w-full h-32 md:h-40 object-cover rounded-md mb-2"
-                />
-                <p className="text-white text-sm font-medium">Silicon Valley</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="bg-white/10 backdrop-blur-sm border-white/20 rounded-lg p-2 hover:bg-white/20 transition-all duration-200">
-                <img
-                  src="/how-i-met-your-mother-tv-show-poster.png"
-                  alt="How I Met Your Mother"
-                  className="w-full h-32 md:h-40 object-cover rounded-md mb-2"
-                />
-                <p className="text-white text-sm font-medium">How I Met Your Mother</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {!userData ? (
+          <FarcasterAuth 
+            isInFarcaster={isInFarcaster}
+            onUserConnected={handleUserConnected}
+          />
+        ) : (
+          <CharacterAnalysis 
+            userData={userData}
+            onReanalyze={() => setUserData(null)}
+          />
+        )}
       </div>
     </div>
   )

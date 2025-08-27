@@ -7,27 +7,54 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Sitcom Character Matcher - Farcaster Mini App",
-  description: "Discover which sitcom character you are based on your Farcaster casts!",
-  generator: "v0.app",
+  title: 'Farcaster Sitcom Matcher',
+  description: 'Discover which sitcom character you\'re most like based on your Farcaster social data!',
+  metadataBase: new URL('https://your-vercel-domain.vercel.app'), // Update this with your actual domain
   openGraph: {
-    title: "Sitcom Character Matcher",
-    description: "Discover which sitcom character you are based on your Farcaster casts!",
-    images: ["/placeholder-logo.png"],
+    title: 'Farcaster Sitcom Matcher',
+    description: 'Discover which sitcom character you\'re most like based on your Farcaster social data!',
+    images: [
+      {
+        url: '/abstract-profile.png',
+        width: 1200,
+        height: 800,
+        alt: 'Farcaster Sitcom Matcher',
+      },
+    ],
   },
   other: {
-    "fc:miniapp": JSON.stringify({
+    'fc:miniapp': JSON.stringify({
       version: "1",
-      imageUrl: "/placeholder-logo.png",
+      imageUrl: "https://your-vercel-domain.vercel.app/abstract-profile.png", // Update with your domain
       button: {
         title: "Sitcom Matcher",
         action: {
-          url: "/",
-          method: "GET"
-        }
-      }
-    })
-  }
+          type: "post",
+          url: "https://your-vercel-domain.vercel.app", // Update with your domain
+        },
+      },
+      postUrl: "https://your-vercel-domain.vercel.app", // Update with your domain
+      input: {
+        text: "Discover which sitcom character you are!",
+      },
+    }),
+    // Backward compatibility
+    'fc:frame': JSON.stringify({
+      version: "1",
+      imageUrl: "https://your-vercel-domain.vercel.app/abstract-profile.png", // Update with your domain
+      button: {
+        title: "Sitcom Matcher",
+        action: {
+          type: "post",
+          url: "https://your-vercel-domain.vercel.app", // Update with your domain
+        },
+      },
+      postUrl: "https://your-vercel-domain.vercel.app", // Update with your domain
+      input: {
+        text: "Discover which sitcom character you are!",
+      },
+    }),
+  },
 }
 
 export default function RootLayout({
@@ -36,46 +63,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
-        {/* Preconnect to Farcaster Quick Auth Server for better performance */}
         <link rel="preconnect" href="https://auth.farcaster.xyz" />
-        
-        {/* Farcaster Mini App Embed Meta Tags */}
-        <meta property="fc:miniapp" content={JSON.stringify({
-          version: "1",
-          imageUrl: "/placeholder-logo.png",
-          button: {
-            title: "Sitcom Matcher",
-            action: {
-              url: "/",
-              method: "GET"
-            }
-          }
-        })} />
-        
-        {/* Backward compatibility with fc:frame */}
-        <meta property="fc:frame" content={JSON.stringify({
-          version: "1",
-          imageUrl: "/placeholder-logo.png",
-          button: {
-            title: "Sitcom Matcher",
-            action: {
-              url: "/",
-              method: "GET"
-            }
-          }
-        })} />
       </head>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   )

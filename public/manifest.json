@@ -1,24 +1,30 @@
 {
-  "name": "Sitcom Character Matcher",
-  "description": "Discover which sitcom character you are based on your Farcaster casts!",
-  "icon": "/placeholder-logo.png",
-  "splash": "/placeholder-logo.png",
-  "theme": "light",
-  "primaryColor": "#fbbf24",
-  "backgroundColor": "#1e40af",
-  "url": "https://your-domain.com",
-  "version": "1.0.0",
-  "author": {
-    "name": "Your Name",
-    "url": "https://github.com/shanks-design"
-  },
+  "name": "Farcaster Sitcom Matcher",
+  "description": "Discover which sitcom character you're most like based on your Farcaster social data!",
+  "icon": "/abstract-profile.png",
+  "url": "https://your-vercel-domain.vercel.app",
   "permissions": [
-    "user_profile",
-    "user_casts"
+    "farcaster://signer/read",
+    "farcaster://signer/write"
   ],
   "features": [
-    "authentication",
-    "character_analysis",
-    "social_sharing"
+    "farcaster://signer/read",
+    "farcaster://signer/write"
+  ],
+  "version": "1.0.0",
+  "author": "Your Name",
+  "repository": "https://github.com/yourusername/farcaster-sitcom-matcher",
+  "keywords": [
+    "farcaster",
+    "mini-app",
+    "sitcom",
+    "character-analysis",
+    "ai",
+    "social-data"
+  ],
+  "categories": [
+    "entertainment",
+    "social",
+    "ai"
   ]
 }

@@ -75,14 +75,14 @@ export async function GET(request: NextRequest) {
 
       // Fetch user profile
       console.log('Fetching user profile for FID:', fid)
-      const profileResponse = await neynarClient.getUserProfile({
+      const profileResponse = await neynarClient.fetchUserProfile({
         fid: fid,
       })
       console.log('✅ Profile fetched:', profileResponse.user.username)
 
       // Fetch user casts
       console.log('Fetching user casts...')
-      const castsResponse = await neynarClient.getUserCasts({
+      const castsResponse = await neynarClient.fetchUserCasts({
         fid: fid,
         limit: 50, // Get recent casts for analysis
       })
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       let reactions: any[] = []
       try {
         console.log('Fetching user reactions...')
-        const reactionsResponse = await neynarClient.getUserReactions({
+        const reactionsResponse = await neynarClient.fetchUserReactions({
           fid: fid,
           type: 'likes', // Specify reaction type
           limit: 50,

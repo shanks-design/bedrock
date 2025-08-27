@@ -33,7 +33,7 @@ export async function GET() {
       // Test a simple API call - get user profile for a known FID
       // Using FID 1 (Dwr) as a test case
       console.log('Testing API call to get user profile...')
-      const profileResponse = await neynarClient.getUserProfile({
+      const profileResponse = await neynarClient.fetchUserProfile({
         fid: 1,
       })
       

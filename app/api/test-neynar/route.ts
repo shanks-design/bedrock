@@ -33,24 +33,24 @@ export async function GET() {
       // Test a simple API call - get user profile for a known FID
       // Using FID 1 (Dwr) as a test case
       console.log('Testing API call to get user profile...')
-      const profileResponse = await neynarClient.fetchUserProfile({
-        fid: 1,
+      const profileResponse = await neynarClient.fetchBulkUsers({
+        fids: [1],
       })
       
       console.log('✅ API call successful')
       console.log('User data:', {
-        fid: profileResponse.user.fid,
-        username: profileResponse.user.username,
-        displayName: profileResponse.user.displayName
+        fid: profileResponse.users[0]?.fid,
+        username: profileResponse.users[0]?.username,
+        displayName: profileResponse.users[0]?.displayName
       })
       
       return NextResponse.json({
         success: true,
         message: 'Neynar API integration working correctly',
         testUser: {
-          fid: profileResponse.user.fid,
-          username: profileResponse.user.username,
-          displayName: profileResponse.user.displayName
+          fid: profileResponse.users[0]?.fid,
+          username: profileResponse.users[0]?.username,
+          displayName: profileResponse.users[0]?.displayName
         },
         envCheck: {
           exists: true,

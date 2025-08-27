@@ -73,16 +73,16 @@ export async function GET(request: NextRequest) {
       const neynarClient = new NeynarAPIClient(config)
       console.log('✅ Neynar client created')
 
-      // Fetch user profile
+      // Fetch user profile using the correct method
       console.log('Fetching user profile for FID:', fid)
-      const profileResponse = await neynarClient.fetchUserProfile({
-        fid: fid,
+      const profileResponse = await neynarClient.fetchBulkUsers({
+        fids: [fid],
       })
-      console.log('✅ Profile fetched:', profileResponse.user.username)
+      console.log('✅ Profile fetched:', profileResponse.users[0]?.username)
 
-      // Fetch user casts
+      // Fetch user casts using the correct method
       console.log('Fetching user casts...')
-      const castsResponse = await neynarClient.fetchUserCasts({
+      const castsResponse = await neynarClient.fetchCastsForUser({
         fid: fid,
         limit: 50, // Get recent casts for analysis
       })

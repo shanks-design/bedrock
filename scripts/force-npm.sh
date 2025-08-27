@@ -12,9 +12,8 @@ echo "🧹 Cleaning up ALL package manager files..."
 rm -f pnpm-lock.yaml yarn.lock package-lock.json
 rm -rf .pnpm-store .yarn .yarnrc.yml .npmrc
 
-# Clean install with npm
-echo "📦 Installing dependencies with npm..."
-npm install --legacy-peer-deps --force --prefer-npm
+# Don't reinstall - Vercel already did this correctly
+echo "📦 Dependencies already installed by Vercel..."
 
 # Build
 echo "🏗️ Building with npm..."

@@ -78,7 +78,10 @@ export async function GET(request: NextRequest) {
       const profileResponse = await neynarClient.fetchBulkUsers({
         fids: [fid],
       })
-      console.log('✅ Profile fetched:', profileResponse.users[0]?.username)
+      console.log('✅ Profile response received:', JSON.stringify(profileResponse, null, 2))
+      console.log('✅ Profile users array:', profileResponse.users)
+      console.log('✅ First user:', profileResponse.users?.[0])
+      console.log('✅ Username:', profileResponse.users?.[0]?.username)
 
       // Fetch user casts using the correct method
       console.log('Fetching user casts...')
@@ -86,6 +89,8 @@ export async function GET(request: NextRequest) {
         fid: fid,
         limit: 50, // Get recent casts for analysis
       })
+      console.log('✅ Casts response received:', JSON.stringify(castsResponse, null, 2))
+      console.log('✅ Casts array:', castsResponse.casts)
       console.log('✅ Casts fetched:', castsResponse.casts?.length || 0, 'casts')
 
       // Fetch user reactions (if available)

@@ -12,36 +12,51 @@ interface UserData {
 interface FarcasterAuthProps {
   isInFarcaster: boolean
   onUserConnected: (data: UserData) => void
+  debugInfo?: any
 }
 
-export default function FarcasterAuth({ isInFarcaster, onUserConnected }: FarcasterAuthProps) {
+export default function FarcasterAuth({ isInFarcaster, onUserConnected, debugInfo }: FarcasterAuthProps) {
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [connectionAttempts, setConnectionAttempts] = useState(0)
 
   const connectWithFarcaster = async () => {
     setIsConnecting(true)
     setError(null)
+    setConnectionAttempts(prev => prev + 1)
 
     try {
       if (isInFarcaster) {
         // Use Quick Auth for seamless authentication
         try {
+          console.log('Attempting to import and use Mini App SDK...')
           const { sdk } = await import('@farcaster/miniapp-sdk')
+          console.log('SDK imported successfully, getting token...')
+          
           const { token } = await sdk.quickAuth.getToken()
+          console.log('Token received:', token ? 'Yes' : 'No')
+          
+          if (!token) {
+            throw new Error('No authentication token received from Farcaster')
+          }
           
           // Fetch user data using the authenticated token
+          console.log('Fetching user data with token...')
           const response = await sdk.quickAuth.fetch('/api/farcaster/me')
+          console.log('Response received:', response.status, response.statusText)
           
           if (response.ok) {
             const userData = await response.json()
+            console.log('User data parsed successfully:', userData)
             onUserConnected(userData)
           } else {
-            const errorData = await response.json()
-            throw new Error(errorData.error || 'Failed to fetch user data')
+            const errorData = await response.json().catch(() => ({}))
+            console.error('Quick Auth failed:', response.status, errorData)
+            throw new Error(errorData.error || `Failed to fetch user data: ${response.status}`)
           }
         } catch (sdkError) {
           console.error('SDK error:', sdkError)
-          throw new Error('Failed to connect with Farcaster SDK')
+          throw new Error(`SDK Error: ${sdkError.message}`)
         }
       } else {
         // For non-Farcaster environments, show guidance
@@ -77,7 +92,13 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
 
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
-            {error}
+            <p className="font-semibold mb-1">Authentication Failed</p>
+            <p className="text-sm">{error}</p>
+            {connectionAttempts > 1 && (
+              <p className="text-xs mt-2 text-red-300">
+                Attempt {connectionAttempts} - If this persists, try refreshing the page
+              </p>
+            )}
           </div>
         )}
 
@@ -101,9 +122,14 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
         </button>
 
         {isInFarcaster && (
-          <p className="text-sm text-gray-400 mt-4">
-            Your wallet will prompt you to sign a message to authenticate
-          </p>
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-gray-400">
+              Your wallet will prompt you to sign a message to authenticate
+            </p>
+            <p className="text-xs text-gray-500">
+              Connection attempts: {connectionAttempts}
+            </p>
+          </div>
         )}
 
         {!isInFarcaster && (
@@ -117,6 +143,24 @@ export default function FarcasterAuth({ isInFarcaster, onUserConnected }: Farcas
             </div>
             <div className="mt-4 text-xs text-blue-200">
               <p><strong>Note:</strong> This app requires real Farcaster authentication to access your profile, casts, and reactions for accurate character analysis.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Debug Information */}
+        {debugInfo && Object.keys(debugInfo).length > 0 && (
+          <div className="mt-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+            <h3 className="text-lg font-semibold text-yellow-200 mb-2">Debug Info</h3>
+            <div className="text-yellow-100 text-xs space-y-1">
+              <p><strong>SDK Loaded:</strong> {debugInfo.sdkLoaded ? 'Yes' : 'No'}</p>
+              <p><strong>In Farcaster:</strong> {debugInfo.isInFarcaster ? 'Yes' : 'No'}</p>
+              <p><strong>SDK Ready:</strong> {debugInfo.sdkReady ? 'Yes' : 'No'}</p>
+              {debugInfo.quickAuthError && (
+                <p><strong>Quick Auth Error:</strong> {JSON.stringify(debugInfo.quickAuthError)}</p>
+              )}
+              {debugInfo.sdkInitError && (
+                <p><strong>SDK Init Error:</strong> {debugInfo.sdkInitError}</p>
+              )}
             </div>
           </div>
         )}

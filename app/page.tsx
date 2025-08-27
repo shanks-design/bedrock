@@ -16,6 +16,52 @@ export default function Home() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
   const [sdkAvailable, setSdkAvailable] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<any>({})
+
+  // Enhanced Farcaster client detection
+  const detectFarcasterClient = () => {
+    const indicators = {
+      // Check if we're in a Farcaster client via SDK
+      sdkDetection: false,
+      // Check URL patterns that suggest Farcaster client
+      urlPattern: false,
+      // Check user agent for Farcaster clients
+      userAgent: false,
+      // Check for Farcaster-specific environment variables or globals
+      environment: false,
+      // Check if we're in an iframe (common for Mini Apps)
+      iframe: false,
+    }
+
+    try {
+      // Check if we're in an iframe
+      indicators.iframe = window !== window.top
+      
+      // Check URL patterns
+      const url = window.location.href
+      indicators.urlPattern = url.includes('farcaster') || 
+                             url.includes('warpcast') || 
+                             url.includes('base') ||
+                             url.includes('miniapp') ||
+                             url.includes('preview')
+      
+      // Check user agent
+      const userAgent = navigator.userAgent.toLowerCase()
+      indicators.userAgent = userAgent.includes('farcaster') || 
+                            userAgent.includes('warpcast') ||
+                            userAgent.includes('base')
+      
+      // Check for Farcaster-specific environment
+      indicators.environment = !!(window as any).farcaster || 
+                              !!(window as any).warpcast ||
+                              !!(window as any).baseApp
+
+      return indicators
+    } catch (error) {
+      console.log('Error in client detection:', error)
+      return indicators
+    }
+  }
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -27,52 +73,138 @@ export default function Home() {
           return
         }
 
+        // Enhanced client detection
+        const clientIndicators = detectFarcasterClient()
+        console.log('Client detection indicators:', clientIndicators)
+        
+        setDebugInfo((prev: any) => ({
+          ...prev,
+          clientIndicators,
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+          isIframe: window !== window.top
+        }))
+
         // Check if the Mini App SDK is available
         let sdk: any = null
         try {
           const { sdk: sdkModule } = await import('@farcaster/miniapp-sdk')
           sdk = sdkModule
           setSdkAvailable(true)
+          
+          // Add debug info
+          setDebugInfo((prev: any) => ({
+            ...prev,
+            sdkLoaded: true,
+            sdkVersion: 'loaded'
+          }))
         } catch (sdkError) {
           console.log('Mini App SDK not available:', sdkError)
           setSdkAvailable(false)
-          setIsInFarcaster(false)
-          setLoading(false)
-          return
+          setDebugInfo((prev: any) => ({
+            ...prev,
+            sdkLoaded: false,
+            sdkError: sdkError instanceof Error ? sdkError.message : 'Unknown error'
+          }))
         }
 
-        // Check if we're inside a Farcaster client
-        try {
-          const inFarcaster = sdk.isInFarcaster()
-          setIsInFarcaster(inFarcaster)
+        // Determine if we're in a Farcaster client
+        let inFarcaster = false
+        
+        if (sdk) {
+          try {
+            // Try SDK detection first
+            inFarcaster = sdk.isInFarcaster()
+            console.log('SDK isInFarcaster result:', inFarcaster)
+          } catch (sdkInitError) {
+            console.log('SDK isInFarcaster failed:', sdkInitError)
+            setDebugInfo((prev: any) => ({
+              ...prev,
+              sdkInitError: sdkInitError instanceof Error ? sdkInitError.message : 'Unknown error'
+            }))
+          }
+        }
 
-          if (inFarcaster) {
+        // If SDK detection fails, use our enhanced detection
+        if (!inFarcaster) {
+          const indicators = clientIndicators
+          // Consider it a Farcaster client if multiple indicators are true
+          const positiveIndicators = Object.values(indicators).filter(Boolean).length
+          inFarcaster = positiveIndicators >= 2 || indicators.urlPattern || indicators.iframe
+          
+          console.log('Enhanced detection result:', inFarcaster, 'Positive indicators:', positiveIndicators)
+        }
+
+        setIsInFarcaster(inFarcaster)
+        
+        setDebugInfo((prev: any) => ({
+          ...prev,
+          isInFarcaster: inFarcaster,
+          detectionMethod: sdk ? 'SDK + Enhanced' : 'Enhanced Only'
+        }))
+
+        if (inFarcaster) {
+          console.log('Running in Farcaster client, initializing SDK...')
+          
+          if (sdk) {
             // Initialize the Mini App SDK
-            await sdk.actions.ready()
+            try {
+              await sdk.actions.ready()
+              console.log('SDK ready() completed successfully')
+              
+              setDebugInfo((prev: any) => ({
+                ...prev,
+                sdkReady: true
+              }))
+            } catch (readyError) {
+              console.error('SDK ready() failed:', readyError)
+              setDebugInfo((prev: any) => ({
+                ...prev,
+                sdkReady: false,
+                readyError: readyError instanceof Error ? readyError.message : 'Unknown error'
+              }))
+            }
             
             // Try to get authenticated user data
             try {
+              console.log('Attempting to fetch user data...')
               const response = await sdk.quickAuth.fetch('/api/farcaster/me')
+              console.log('Quick Auth response:', response.status, response.statusText)
+              
               if (response.ok) {
                 const data = await response.json()
+                console.log('User data received:', data)
                 setUserData(data)
               } else {
-                console.log('User not authenticated, will show sign-in')
+                const errorData = await response.json().catch(() => ({}))
+                console.log('Quick Auth failed:', response.status, errorData)
+                setDebugInfo((prev: any) => ({
+                  ...prev,
+                  quickAuthError: {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorData
+                  }
+                }))
               }
             } catch (authError) {
-              console.log('Authentication error:', authError)
-              // This is expected for new users
+              console.error('Quick Auth error:', authError)
+              setDebugInfo((prev: any) => ({
+                ...prev,
+                quickAuthError: authError instanceof Error ? authError.message : 'Unknown error'
+              }))
             }
           }
-        } catch (sdkInitError) {
-          console.log('SDK initialization error:', sdkInitError)
-          // If SDK fails to initialize, we're not in a Farcaster client
-          setIsInFarcaster(false)
+        } else {
+          console.log('Not running in Farcaster client')
         }
       } catch (err) {
         console.error('App initialization error:', err)
-        // Don't set error for initialization issues, just continue in web mode
         setIsInFarcaster(false)
+        setDebugInfo((prev: any) => ({
+          ...prev,
+          appInitError: err instanceof Error ? err.message : 'Unknown error'
+        }))
       } finally {
         setLoading(false)
       }
@@ -127,12 +259,27 @@ export default function Home() {
           <FarcasterAuth 
             isInFarcaster={isInFarcaster}
             onUserConnected={handleUserConnected}
+            debugInfo={debugInfo}
           />
         ) : (
           <CharacterAnalysis 
             userData={userData}
             onReanalyze={() => setUserData(null)}
           />
+        )}
+
+        {/* Debug Information */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 max-w-4xl mx-auto">
+            <details className="bg-black/20 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+              <summary className="text-white font-semibold cursor-pointer mb-2">
+                🔍 Debug Information (Development Only)
+              </summary>
+              <pre className="text-xs text-gray-300 overflow-auto max-h-64">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </details>
+          </div>
         )}
 
         {/* App Information */}

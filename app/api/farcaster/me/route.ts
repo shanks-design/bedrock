@@ -89,11 +89,12 @@ export async function GET(request: NextRequest) {
       console.log('✅ Casts fetched:', castsResponse.casts?.length || 0, 'casts')
 
       // Fetch user reactions (if available)
-      let reactions = []
+      let reactions: any[] = []
       try {
         console.log('Fetching user reactions...')
         const reactionsResponse = await neynarClient.getUserReactions({
           fid: fid,
+          type: 'likes', // Specify reaction type
           limit: 50,
         })
         reactions = reactionsResponse.reactions || []
@@ -131,8 +132,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(userData)
     } catch (neynarError) {
       console.error('❌ Neynar API error:', neynarError)
+      console.error('Error details:', {
+        name: neynarError.name,
+        message: neynarError.message,
+        stack: neynarError.stack,
+        code: (neynarError as any).code,
+        status: (neynarError as any).status,
+        response: (neynarError as any).response
+      })
+      
+      // Return more specific error information
+      let errorMessage = 'Failed to fetch Farcaster data. Please try again later.'
+      if (neynarError instanceof Error) {
+        errorMessage = `Neynar API Error: ${neynarError.message}`
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to fetch Farcaster data. Please try again later.' },
+        { 
+          error: errorMessage,
+          details: neynarError instanceof Error ? neynarError.message : 'Unknown error',
+          timestamp: new Date().toISOString()
+        },
         { status: 500 }
       )
     }

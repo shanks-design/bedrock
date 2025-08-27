@@ -1,9 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Minimal CSS to get build working */
 :root {
-  /* Updated color tokens to match Fork CMS blue gradient theme */
   --background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   --foreground: #ffffff;
   --card: rgba(255, 255, 255, 0.1);
@@ -23,27 +19,10 @@
   --border: rgba(255, 255, 255, 0.2);
   --input: rgba(255, 255, 255, 0.1);
   --ring: rgba(251, 191, 36, 0.5);
-  --chart-1: #fbbf24;
-  --chart-2: #3b82f6;
-  --chart-3: #1e40af;
-  --chart-4: #fbbf24;
-  --chart-5: #3b82f6;
   --radius: 0.5rem;
-  --sidebar: rgba(255, 255, 255, 0.1);
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #fbbf24;
-  --sidebar-primary-foreground: #1e40af;
-  --sidebar-accent: #374151;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.2);
-  --sidebar-ring: rgba(251, 191, 36, 0.5);
-  /* Added custom font variables for Space Grotesk and DM Sans */
-  --font-nunito: "Nunito", sans-serif;
-  --font-comfortaa: "Comfortaa", cursive;
 }
 
 .dark {
-  /* Updated dark mode to maintain blue gradient theme */
   --background: linear-gradient(135deg, #1e40af 0%, #0f172a 100%);
   --foreground: #ffffff;
   --card: rgba(255, 255, 255, 0.1);
@@ -63,33 +42,21 @@
   --border: rgba(255, 255, 255, 0.2);
   --input: rgba(255, 255, 255, 0.1);
   --ring: rgba(251, 191, 36, 0.5);
-  --chart-1: #fbbf24;
-  --chart-2: #3b82f6;
-  --chart-3: #1e40af;
-  --chart-4: #fbbf24;
-  --chart-5: #3b82f6;
-  --sidebar: rgba(255, 255, 255, 0.1);
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #fbbf24;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #374151;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.2);
-  --sidebar-ring: rgba(251, 191, 36, 0.5);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    /* Added gradient background to body */
-    background: var(--background);
-    @apply text-foreground;
-  }
+* {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  /* Added custom gradient background class */
-  .gradient-bg {
-    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-  }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
 }

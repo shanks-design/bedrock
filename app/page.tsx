@@ -111,36 +111,20 @@ export default function Home() {
         // Determine if we're in a Farcaster client
         let inFarcaster = false
         
-        if (sdk) {
-          try {
-            // Try SDK detection first
-            inFarcaster = sdk.isInFarcaster()
-            console.log('SDK isInFarcaster result:', inFarcaster)
-          } catch (sdkInitError) {
-            console.log('SDK isInFarcaster failed:', sdkInitError)
-            setDebugInfo((prev: any) => ({
-              ...prev,
-              sdkInitError: sdkInitError instanceof Error ? sdkInitError.message : 'Unknown error'
-            }))
-          }
-        }
-
-        // If SDK detection fails, use our enhanced detection
-        if (!inFarcaster) {
-          const indicators = clientIndicators
-          // Consider it a Farcaster client if multiple indicators are true
-          const positiveIndicators = Object.values(indicators).filter(Boolean).length
-          inFarcaster = positiveIndicators >= 2 || indicators.urlPattern || indicators.iframe
-          
-          console.log('Enhanced detection result:', inFarcaster, 'Positive indicators:', positiveIndicators)
-        }
+        // Use enhanced detection since SDK.isInFarcaster() method doesn't exist
+        const indicators = clientIndicators
+        // Consider it a Farcaster client if multiple indicators are true
+        const positiveIndicators = Object.values(indicators).filter(Boolean).length
+        inFarcaster = positiveIndicators >= 2 || indicators.urlPattern || indicators.iframe
+        
+        console.log('Enhanced detection result:', inFarcaster, 'Positive indicators:', positiveIndicators)
 
         setIsInFarcaster(inFarcaster)
         
         setDebugInfo((prev: any) => ({
           ...prev,
           isInFarcaster: inFarcaster,
-          detectionMethod: sdk ? 'SDK + Enhanced' : 'Enhanced Only'
+          detectionMethod: 'Enhanced Detection'
         }))
 
         if (inFarcaster) {

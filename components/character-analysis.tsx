@@ -15,19 +15,31 @@ interface CharacterAnalysisProps {
 }
 
 interface AnalysisResult {
-  character: {
-    name: string
-    traits: string[]
+  topMatches: Array<{
+    character: string
     show: string
+    confidence: number
+    reasoning: string
+  }>
+  identifiedTraits: string[]
+  personalitySummary: string
+}
+
+interface AnalysisResponse {
+  success: boolean
+  analysis: AnalysisResult
+  userData: {
+    username: string
+    displayName: string
+    castsAnalyzed: number
+    reactionsAnalyzed: number
   }
-  confidence: number
-  reasoning: string
-  analyzedCasts: number
+  timestamp: string
 }
 
 export default function CharacterAnalysis({ userData, onReanalyze }: CharacterAnalysisProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const analyzeCharacter = async () => {
@@ -45,7 +57,7 @@ export default function CharacterAnalysis({ userData, onReanalyze }: CharacterAn
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ casts: userData.casts }),
+        body: JSON.stringify({ userData }),
       })
 
       if (!response.ok) {
@@ -154,22 +166,60 @@ export default function CharacterAnalysis({ userData, onReanalyze }: CharacterAn
 
         {analysisResult && (
           <div className="space-y-6">
+            {/* Top Character Match */}
             <div className="text-center">
               <h3 className="text-3xl font-bold text-white mb-2">
                 🎭 You're Most Like:
               </h3>
               <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-transparent bg-clip-text">
-                <h2 className="text-4xl font-bold">{analysisResult.character.name}</h2>
+                <h2 className="text-4xl font-bold">{analysisResult.analysis.topMatches[0].character}</h2>
               </div>
               <p className="text-xl text-gray-300 mt-2">
-                from <span className="text-white font-semibold">{analysisResult.character.show}</span>
+                from <span className="text-white font-semibold">{analysisResult.analysis.topMatches[0].show}</span>
               </p>
+              <div className="mt-4">
+                <span className="bg-blue-500/20 border border-blue-500/50 text-blue-200 px-4 py-2 rounded-full text-lg font-semibold">
+                  {analysisResult.analysis.topMatches[0].confidence}% Match
+                </span>
+              </div>
             </div>
 
+            {/* All Character Matches */}
             <div className="bg-white/5 rounded-lg p-6">
-              <h4 className="text-xl font-semibold text-white mb-4">Character Traits</h4>
+              <h4 className="text-xl font-semibold text-white mb-4">Your Character Matches</h4>
+              <div className="space-y-4">
+                {analysisResult.analysis.topMatches.map((match, index) => (
+                  <div key={index} className={`p-4 rounded-lg border ${
+                    index === 0 
+                      ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/50' 
+                      : 'bg-white/5 border-white/20'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-lg font-semibold text-white">
+                        {index + 1}. {match.character}
+                      </h5>
+                      <span className="text-sm text-gray-300">{match.show}</span>
+                    </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        index === 0 
+                          ? 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/50' 
+                          : 'bg-blue-500/20 text-blue-200 border border-blue-500/50'
+                      }`}>
+                        {match.confidence}% Match
+                      </span>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">{match.reasoning}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Identified Traits */}
+            <div className="bg-white/5 rounded-lg p-6">
+              <h4 className="text-xl font-semibold text-white mb-4">Your Personality Traits</h4>
               <div className="flex flex-wrap gap-2 justify-center">
-                {analysisResult.character.traits.map((trait, index) => (
+                {analysisResult.analysis.identifiedTraits.map((trait, index) => (
                   <span
                     key={index}
                     className="bg-purple-500/20 border border-purple-500/50 text-purple-200 px-3 py-1 rounded-full text-sm"
@@ -180,27 +230,34 @@ export default function CharacterAnalysis({ userData, onReanalyze }: CharacterAn
               </div>
             </div>
 
+            {/* Personality Summary */}
+            <div className="bg-white/5 rounded-lg p-6">
+              <h4 className="text-xl font-semibold text-white mb-4">Personality Summary</h4>
+              <p className="text-gray-300 leading-relaxed text-center">{analysisResult.analysis.personalitySummary}</p>
+            </div>
+
+            {/* Analysis Details */}
             <div className="bg-white/5 rounded-lg p-6">
               <h4 className="text-xl font-semibold text-white mb-4">Analysis Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-blue-400">{analysisResult.confidence}%</div>
-                  <div className="text-gray-300 text-sm">Confidence</div>
+                  <div className="text-2xl font-bold text-blue-400">{analysisResult.analysis.topMatches[0].confidence}%</div>
+                  <div className="text-gray-300 text-sm">Top Match</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-400">{analysisResult.analyzedCasts}</div>
+                  <div className="text-2xl font-bold text-green-400">{analysisResult.userData.castsAnalyzed}</div>
                   <div className="text-gray-300 text-sm">Casts Analyzed</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">{userData.casts?.length || 0}</div>
-                  <div className="text-gray-300 text-sm">Total Casts</div>
+                  <div className="text-2xl font-bold text-purple-400">{analysisResult.userData.reactionsAnalyzed}</div>
+                  <div className="text-gray-300 text-sm">Reactions Analyzed</div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white/5 rounded-lg p-6">
-              <h4 className="text-xl font-semibold text-white mb-4">AI Reasoning</h4>
-              <p className="text-gray-300 leading-relaxed">{analysisResult.reasoning}</p>
+              <div className="text-center mt-4">
+                <p className="text-xs text-gray-400">
+                  Analyzed on {new Date(analysisResult.timestamp).toLocaleString()}
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-4 justify-center">
